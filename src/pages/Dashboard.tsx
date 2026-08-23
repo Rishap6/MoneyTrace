@@ -16,6 +16,9 @@ import { DemoControlPanel } from '../components/dashboard/DemoControlPanel';
 import { EmergencyInvestigationOverlay } from '../components/alerts/EmergencyInvestigationOverlay';
 import { ToastCenter } from '../components/common/ToastCenter';
 import { useLiveTelemetry } from '../hooks/useWebSocket';
+import { RecoveryCommandCenter } from '../components/dashboard/RecoveryCommandCenter';
+import { InvestigatorLeaderboard } from '../components/dashboard/InvestigatorLeaderboard';
+import { ThreatIntelFeed } from '../components/dashboard/ThreatIntelFeed';
 
 export const Dashboard: React.FC = () => {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
@@ -118,6 +121,58 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Instant Incident Recovery Command Center (One-Click Freeze Workflow) */}
+      <RecoveryCommandCenter
+        alertId="ALT2026081601"
+        stolenAmount={150000}
+        currentHolder="ACC5008"
+        holderBank="ICICI Bank (Bangalore)"
+        recoveryProbability={92}
+      />
+
+      {/* Fraud Loss Prevention Live Counter Row (Executive High-Impact) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-2 border-emerald-500/30 flex items-center justify-between shadow-card">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-800">
+                MONEY PROTECTED TODAY
+              </span>
+            </div>
+            <p className="text-2xl lg:text-3xl font-black text-emerald-800 font-mono">
+              ₹12,45,000
+            </p>
+            <p className="text-[11px] text-emerald-700 font-medium">
+              3 Syndicate Mule Off-Ramps Blocked
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <span className="material-symbols-outlined text-2xl">verified_user</span>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-2 border-blue-500/30 flex items-center justify-between shadow-card">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-800">
+                MONEY SAVED THIS MONTH
+              </span>
+            </div>
+            <p className="text-2xl lg:text-3xl font-black text-blue-800 font-mono">
+              ₹1.20 Cr
+            </p>
+            <p className="text-[11px] text-blue-700 font-medium">
+              85% Intercepted Under Section 91 CrPC
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <span className="material-symbols-outlined text-2xl">savings</span>
+          </div>
+        </div>
+      </div>
+
       {/* Threat Intelligence + Active Users */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ThreatRadarWidget />
@@ -136,6 +191,12 @@ export const Dashboard: React.FC = () => {
         {statsLoading && Array.from({ length: 4 - statCards.length }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
+      </div>
+
+      {/* Leaderboard + Live Threat Intel Feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <InvestigatorLeaderboard />
+        <ThreatIntelFeed />
       </div>
 
       {/* Recovery + Heatmap */}

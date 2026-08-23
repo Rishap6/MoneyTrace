@@ -27,6 +27,9 @@ export const CustomerSendMoney: React.FC = () => {
   const [showPinModal, setShowPinModal] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successTx, setSuccessTx] = useState<any>(null);
+  const [beneficiaryWarning, setBeneficiaryWarning] = useState<any | null>(null);
+  const [showWarningModal, setShowWarningModal] = useState<boolean>(false);
+  const [isCheckingRisk, setIsCheckingRisk] = useState<boolean>(false);
 
   // Read initial recipient from router state (e.g. from Home frequent contact click)
   useEffect(() => {
@@ -95,7 +98,7 @@ export const CustomerSendMoney: React.FC = () => {
     setErrorMessage(null);
   };
 
-  const handleInitiateTransfer = (e: React.FormEvent) => {
+  const handleInitiateTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -111,6 +114,23 @@ export const CustomerSendMoney: React.FC = () => {
     if (numAmount > balance) {
       setErrorMessage(`Insufficient funds. Your available balance is ${formatCurrency(balance)}.`);
       return;
+    }
+
+    // Real-Time Fraud Warning Interceptor Check
+    setIsCheckingRisk(true);
+    try {
+      const res = await api.get<any>(`/fraud/check-beneficiary/${selectedRecipient.account_number}`);
+      const riskData = res.data;
+      if (riskData?.is_suspicious) {
+        setBeneficiaryWarning(riskData);
+        setShowWarningModal(true);
+        setIsCheckingRisk(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('Beneficiary risk check bypassed:', err);
+    } finally {
+      setIsCheckingRisk(false);
     }
 
     setShowPinModal(true);
@@ -383,6 +403,73 @@ export const CustomerSendMoney: React.FC = () => {
             <span>Pay {amount ? formatCurrency(parseFloat(amount)) : '₹0'}</span>
           </button>
         </form>
+      )}
+
+      {/* ───── STEP 2.5: Real-Time Fraud Warning Interceptor Modal ───── */}
+      {showWarningModal && beneficiaryWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-3xl p-6 border-2 border-red-500/80 bg-[#120B14] shadow-2xl shadow-red-950/80 text-center space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-500 mx-auto animate-bounce">
+              <span className="material-symbols-outlined text-3xl">warning</span>
+            </div>
+
+            <div>
+              <span className="px-2.5 py-0.5 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-extrabold tracking-widest uppercase">
+                {beneficiaryWarning.warning_title || 'SUSPICIOUS RECIPIENT DETECTED'}
+              </span>
+              <h3 className="text-base font-extrabold text-white mt-1">
+                Caution: High Risk Transfer
+              </h3>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-red-950/40 border border-red-500/30 text-left space-y-1.5">
+              <p className="text-[12px] text-red-200 leading-relaxed font-medium">
+                {beneficiaryWarning.warning_message}
+              </p>
+              <div className="pt-1.5 border-t border-red-500/20 flex items-center justify-between text-[11px] text-red-300 font-mono">
+                <span>Beneficiary: <b className="text-white">{selectedRecipient?.account_number}</b></span>
+                <span className="font-bold text-red-400">Risk: {beneficiaryWarning.risk_score}/100</span>
+              </div>
+            </div>
+
+            {beneficiaryWarning.is_frozen ? (
+              <div className="space-y-2">
+                <p className="text-[11px] text-slate-400">
+                  Transfers to frozen accounts are blocked per banking regulations.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowWarningModal(false)}
+                  className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  Close & Choose Another Recipient
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowWarningModal(false);
+                    setShowPinModal(true);
+                  }}
+                  className="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-extrabold rounded-xl text-xs shadow-lg shadow-red-900/40 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-base">verified_user</span>
+                  <span>I Understand the Risk, Proceed with PIN</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowWarningModal(false)}
+                  className="w-full py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  Cancel & Abort Transfer
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* ───── STEP 3: Security PIN Confirmation Modal ───── */}

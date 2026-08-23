@@ -1,4 +1,4 @@
-"""Database models package — imports all models for Alembic autogenerate."""
+"""Database models package — imports all models for SQLAlchemy and Alembic."""
 
 from app.database import Base
 from app.models.user import User, UserRole
@@ -7,6 +7,18 @@ from app.models.transaction import Transaction, TransactionStatus
 from app.models.fraud_alert import FraudAlert, Severity, AlertStatus
 from app.models.recovery import RecoveryCase, RecoveryProbability, CaseStatus
 from app.models.investigator_chat import InvestigatorChat
+from app.models.investigation import (
+    InvestigationCase,
+    CasePlaybookStep,
+    InvestigatorNote,
+    CaseEvidence,
+    CaseTimelineEvent,
+    CasePriority,
+    InvestigationStatus,
+    PlaybookStepStatus,
+)
+from app.models.watchlist import WatchlistAccount, WatchlistRiskTier
+from app.models.audit_log import AuditLog, AuditAction
 
 __all__ = [
     "Base",
@@ -23,4 +35,16 @@ __all__ = [
     "RecoveryProbability",
     "CaseStatus",
     "InvestigatorChat",
+    "InvestigationCase",
+    "CasePlaybookStep",
+    "InvestigatorNote",
+    "CaseEvidence",
+    "CaseTimelineEvent",
+    "CasePriority",
+    "InvestigationStatus",
+    "PlaybookStepStatus",
+    "WatchlistAccount",
+    "WatchlistRiskTier",
+    "AuditLog",
+    "AuditAction",
 ]

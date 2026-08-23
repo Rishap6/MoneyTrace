@@ -633,15 +633,22 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
                 dragStartPos.current = { x: e.clientX, y: e.clientY };
               }}
             >
-              {/* Pulsing Aura for Traced / High Risk Nodes */}
-              {(isTraced || n.type === 'high_risk') && (
+              {/* Pulsing Aura for Traced / High Risk / Frozen Nodes */}
+              {n.status === 'frozen' || n.type === 'frozen' ? (
+                <div
+                  className="absolute inset-0 -m-3 rounded-xl animate-pulse pointer-events-none"
+                  style={{
+                    boxShadow: '0 0 24px 6px rgba(6, 182, 212, 0.8)',
+                  }}
+                />
+              ) : (isTraced || n.type === 'high_risk') ? (
                 <div
                   className="absolute inset-0 -m-3 rounded-xl animate-pulse pointer-events-none"
                   style={{
                     boxShadow: `0 0 28px 8px ${theme.glow}`,
                   }}
                 />
-              )}
+              ) : null}
 
               {/* Main Node Card Container with LOD */}
               {transform.zoom < 0.65 ? (
@@ -654,14 +661,16 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
                       : 'bg-[#0F172A]/90 shadow-sm'
                   }`}
                   style={{
-                    border: `1.5px solid ${isTraced ? '#A855F7' : isSelected ? '#38BDF8' : theme.border}`,
+                    border: `1.5px solid ${n.status === 'frozen' ? '#06B6D4' : isTraced ? '#A855F7' : isSelected ? '#38BDF8' : theme.border}`,
                   }}
                 >
                   <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-gray-900 flex-shrink-0 text-[10px]"
-                    style={{ backgroundColor: theme.bg }}
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[10px]"
+                    style={{ backgroundColor: n.status === 'frozen' ? '#0E7490' : theme.bg }}
                   >
-                    <span className="material-symbols-outlined text-[13px]">{theme.icon}</span>
+                    <span className="material-symbols-outlined text-[13px]">
+                      {n.status === 'frozen' ? 'ac_unit' : theme.icon}
+                    </span>
                   </div>
                   <span className="text-[10px] font-bold text-gray-900 font-mono truncate max-w-[80px]">{n.id}</span>
                 </div>
@@ -677,25 +686,35 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
                   style={{
                     minWidth: '135px',
                     maxWidth: '160px',
-                    border: `1.5px solid ${isTraced ? '#A855F7' : isSelected ? '#38BDF8' : theme.border}`,
+                    border: `1.5px solid ${n.status === 'frozen' ? '#06B6D4' : isTraced ? '#A855F7' : isSelected ? '#38BDF8' : theme.border}`,
                     boxShadow: isSelected || isTraced ? `0 0 20px ${theme.glow}` : undefined,
                   }}
                 >
+                  {/* Frozen Badge Header */}
+                  {n.status === 'frozen' && (
+                    <div className="mb-1 px-1.5 py-0.5 rounded bg-sky-900/80 border border-sky-400/40 text-sky-200 text-[8px] font-extrabold tracking-wider uppercase flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[10px]">ac_unit</span>
+                      <span>FROZEN (SEC 91)</span>
+                    </div>
+                  )}
+
                   {/* Top Row: Icon + Classification Label */}
                   <div className="flex items-center gap-2 mb-1.5">
                     <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-900 flex-shrink-0 shadow-sm"
-                      style={{ backgroundColor: theme.bg }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm"
+                      style={{ backgroundColor: n.status === 'frozen' ? '#0E7490' : theme.bg }}
                     >
-                      <span className="material-symbols-outlined text-base">{theme.icon}</span>
+                      <span className="material-symbols-outlined text-base">
+                        {n.status === 'frozen' ? 'ac_unit' : theme.icon}
+                      </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-bold text-gray-900 truncate font-mono">{n.id}</p>
                       <span
                         className="text-[8px] font-bold uppercase tracking-wider block truncate"
-                        style={{ color: theme.border }}
+                        style={{ color: n.status === 'frozen' ? '#06B6D4' : theme.border }}
                       >
-                        {theme.label.split('/')[0]}
+                        {n.status === 'frozen' ? 'FROZEN NODE' : theme.label.split('/')[0]}
                       </span>
                     </div>
                   </div>

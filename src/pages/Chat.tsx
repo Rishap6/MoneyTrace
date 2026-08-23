@@ -55,13 +55,13 @@ I can assist you with real-time financial crime triage, asset recovery evaluatio
 - **Mule Accounts**: \`Why is ACC1002 suspicious?\`
 - **Case Summaries**: \`Summarize Case REC202608168920\`
 - **Compliance Search**: \`What is the RBI guideline for unauthorized digital fraud?\``,
-      intent: 'GENERAL_QUERY',
       suggestions: [
+        'Show me all mule accounts connected to ACC1001',
+        'Which account should be frozen first?',
+        'Summarize this case in 30 seconds',
+        'Explain why this transaction is high risk',
         'Why was transaction TXN_TRACE_HOP1 flagged?',
-        'Show money trail for TXN_TRACE_HOP1',
-        'Can this money be recovered?',
-        'Why is ACC1002 suspicious?',
-        'Summarize Case REC202608168920',
+        'What is the RBI guideline for digital fraud?',
       ],
       recommendations: [
         '1. Inspect open CRITICAL alerts in the SOC Queue',
@@ -340,6 +340,52 @@ I can assist you with real-time financial crime triage, asset recovery evaluatio
                               </div>
                             ))}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Direct Copilot Action Buttons */}
+                      {msg.sender === 'assistant' && (
+                        <div className="mt-3 pt-3 border-t border-outline-variant/30 flex flex-wrap gap-2">
+                          <button
+                            onClick={async () => {
+                              try {
+                                await api.post('/users/accounts/ACC5008/freeze', {
+                                  reason: 'Emergency Freeze executed from AI Copilot',
+                                });
+                                alert('✓ Account ACC5008 frozen successfully under Section 91 CrPC.');
+                              } catch (err) {
+                                console.error(err);
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">ac_unit</span>
+                            <span>Freeze ACC5008</span>
+                          </button>
+
+                          <a
+                            href="/flow"
+                            className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold flex items-center gap-1 transition-all shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">route</span>
+                            <span>Trace Money</span>
+                          </a>
+
+                          <a
+                            href="/reports"
+                            className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold flex items-center gap-1 transition-all shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">description</span>
+                            <span>Generate STR</span>
+                          </a>
+
+                          <a
+                            href="/investigation"
+                            className="px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 text-xs font-bold flex items-center gap-1 transition-all shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">folder_open</span>
+                            <span>Open Case</span>
+                          </a>
                         </div>
                       )}
                     </div>

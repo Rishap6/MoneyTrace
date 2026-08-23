@@ -99,13 +99,17 @@ class TransactionService:
         sender_account = await self.get_account_by_user_id(sender_user_id)
         if sender_account is None:
             raise exceptions.NotFoundError("Sender account not found")
-        if sender_account.status != AccountStatus.ACTIVE.value:
+        if sender_account.status == AccountStatus.FROZEN.value:
+            raise exceptions.ValidationError("Transaction blocked: Sender account is FROZEN under Section 91 CrPC judicial order")
+        elif sender_account.status != AccountStatus.ACTIVE.value:
             raise exceptions.ValidationError("Sender account is not active")
 
         receiver_account = await self.get_account_by_number(receiver_account_number)
         if receiver_account is None:
             raise exceptions.NotFoundError("Receiver account not found")
-        if receiver_account.status != AccountStatus.ACTIVE.value:
+        if receiver_account.status == AccountStatus.FROZEN.value:
+            raise exceptions.ValidationError("Transaction blocked: Receiver account is FROZEN under active fraud interception directive")
+        elif receiver_account.status != AccountStatus.ACTIVE.value:
             raise exceptions.ValidationError("Receiver account is not active")
 
         # Prevent transfer to self

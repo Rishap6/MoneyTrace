@@ -157,6 +157,31 @@ async def freeze_account(
         raise exceptions.NotFoundError(f"Account '{account_number}' not found")
 
     account.status = AccountStatus.FROZEN.value
+    
+    # Record Audit Log
+    from app.models.audit_log import AuditLog, AuditAction
+    from datetime import datetime, timezone
+    from uuid import uuid4
+
+    audit = AuditLog(
+        id=uuid4(),
+        user_id=current_user.id,
+        user_name=current_user.full_name,
+        user_email=current_user.email,
+        user_role=current_user.role if isinstance(current_user.role, str) else current_user.role.value,
+        action=AuditAction.ACCOUNT_FROZEN.value,
+        target_type="ACCOUNT",
+        target_id=account_number,
+        details={
+            "reason": reason,
+            "balance_preserved": float(account.balance),
+            "status": "FROZEN",
+        },
+        ip_address="127.0.0.1",
+        timestamp=datetime.now(timezone.utc),
+    )
+    session.add(audit)
+
     await session.commit()
     await session.refresh(account)
 
@@ -174,7 +199,8 @@ async def freeze_account(
 
     return {
         "success": True,
-        "message": f"Account {account_number} successfully frozen.",
+        "message": f"Account {account_number} successfully frozen under emergency directive.",
         "account_number": account_number,
         "status": "FROZEN",
+        "balance_preserved": float(account.balance),
     }

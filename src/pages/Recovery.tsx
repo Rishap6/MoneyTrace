@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 
+import { RecoveryCalculatorModal } from '../components/recovery/RecoveryCalculatorModal';
+import { RecoveryCommandCenter } from '../components/dashboard/RecoveryCommandCenter';
+
 interface RecoveryCase {
   id: string;
   case_id: string;
@@ -19,6 +22,7 @@ export const Recovery: React.FC = () => {
   const [cases, setCases] = useState<RecoveryCase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCase, setSelectedCase] = useState<RecoveryCase | null>(null);
+  const [showCalculator, setShowCalculator] = useState(false);
 
   const fetchCases = async () => {
     setIsLoading(true);
@@ -43,13 +47,13 @@ export const Recovery: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-gray-200 shadow-card p-6 rounded-xl border border-outline-variant/30 shadow-card">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-tertiary to-emerald-800 flex items-center justify-center text-gray-900 shadow-lg shadow-tertiary/20">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center text-white shadow-lg">
             <span className="material-symbols-outlined text-[32px]">monetization_on</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-headline-sm font-bold text-gray-900">Asset Recovery Intelligence</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-tertiary/20 text-tertiary border border-tertiary/30">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 Phase 7 Engine Active
               </span>
             </div>
@@ -58,7 +62,29 @@ export const Recovery: React.FC = () => {
             </p>
           </div>
         </div>
+
+        <button
+          onClick={() => setShowCalculator(true)}
+          className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2 transition-all cursor-pointer self-start md:self-auto"
+        >
+          <span className="material-symbols-outlined text-base">calculate</span>
+          <span>Recovery AI Simulator</span>
+        </button>
       </div>
+
+      {/* Instant Directive Interceptor Bar */}
+      <RecoveryCommandCenter
+        alertId="ALT2026081601"
+        stolenAmount={150000}
+        currentHolder="ACC5008"
+        holderBank="ICICI Bank (Bangalore)"
+        recoveryProbability={92}
+      />
+
+      <RecoveryCalculatorModal
+        isOpen={showCalculator}
+        onClose={() => setShowCalculator(false)}
+      />
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

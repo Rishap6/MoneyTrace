@@ -25,6 +25,8 @@ import { OnlineUsersPanel } from '../components/graph/OnlineUsersPanel';
 import { NodeInspector } from '../components/graph/NodeInspector';
 import { FraudAlertCenter } from '../components/graph/FraudAlertCenter';
 import { TracePlayback } from '../components/graph/TracePlayback';
+import { FraudRingPanel } from '../components/graph/FraudRingPanel';
+import { CaseReplayBar } from '../components/graph/CaseReplayBar';
 import { AICopilotDrawer } from '../components/graph/AICopilotDrawer';
 import { wsService } from '../hooks/useWebSocket';
 
@@ -94,6 +96,11 @@ export const Flow: React.FC = () => {
   // Copilot Drawer
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copilotQuestion, setCopilotQuestion] = useState('');
+
+  // Fraud Rings & Case Replay Mode States
+  const [replayActive, setReplayActive] = useState(false);
+  const [selectedRingId, setSelectedRingId] = useState<string | null>(null);
+  const [rightTab, setRightTab] = useState<'feed' | 'rings'>('feed');
 
   // Dimensions & Viewport Transform
   const containerRef = useRef<HTMLDivElement>(null);
@@ -466,26 +473,38 @@ export const Flow: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          {/* Replay Incident Button */}
           <button
-            onClick={() => handleTraceSubmit()}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-gray-900 font-bold rounded-xl text-xs shadow-lg shadow-purple-900/30 transition-all flex items-center gap-1.5 cursor-pointer"
+            onClick={() => {
+              setReplayActive(!replayActive);
+              if (!replayActive) {
+                setTraceHighlight(new Set(['ACC1001', 'ACC1005', 'ACC2002', 'ACC5008']));
+              }
+            }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              replayActive
+                ? 'bg-red-600 text-white shadow-lg'
+                : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+            }`}
           >
-            <span className="material-symbols-outlined text-base">route</span>
-            Trace Money
+            <span className="material-symbols-outlined text-base">
+              {replayActive ? 'stop_circle' : 'movie'}
+            </span>
+            <span>{replayActive ? 'Stop Replay' : 'Replay Incident'}</span>
           </button>
 
-          {Boolean((traceData as any)?.hops && (traceData as any).hops.length > 0) && (
-            <button
-              onClick={() => {
-                setTraceStep(0);
-                setTraceIsPlaying(true);
-              }}
-              className="px-4 py-2 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-gray-900 font-bold rounded-xl text-xs shadow-lg transition-all flex items-center gap-1.5 cursor-pointer animate-pulse"
-            >
-              <span className="material-symbols-outlined text-base">play_arrow</span>
-              Animate Trail
-            </button>
-          )}
+          {/* Fraud Rings Toggle */}
+          <button
+            onClick={() => setRightTab(rightTab === 'rings' ? 'feed' : 'rings')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              rightTab === 'rings'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200'
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">group_work</span>
+            <span>Fraud Rings</span>
+          </button>
 
           {/* View Mode Toggle */}
           <div className="flex items-center bg-white p-1 rounded-xl border border-gray-200">
@@ -587,6 +606,21 @@ export const Flow: React.FC = () => {
                 onTransformChange={setTransform}
               />
 
+              {/* Case Replay Bar (Interactive Timeline Replay) */}
+              {replayActive && (
+                <div className="absolute bottom-4 left-4 right-4 z-40">
+                  <CaseReplayBar
+                    onStepChange={(stepIdx, step) => {
+                      if (step) {
+                        setTraceHighlight(new Set([step.source_node, step.target_node]));
+                        focusNodeOnCanvas(step.source_node);
+                      }
+                    }}
+                    onClose={() => setReplayActive(false)}
+                  />
+                </div>
+              )}
+
               {/* Money Trace Playback Controller Bar */}
               <TracePlayback
                 traceData={traceData as any}
@@ -657,6 +691,22 @@ export const Flow: React.FC = () => {
               onAskCopilot={handleAskCopilot}
               onFreezeAccount={handleEmergencyFreeze}
             />
+          ) : rightTab === 'rings' ? (
+            /* Fraud Ring Panel */
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <FraudRingPanel
+                selectedRingId={selectedRingId}
+                onSelectRingId={setSelectedRingId}
+                onHighlightRing={(accounts) => {
+                  if (accounts.length > 0) {
+                    setTraceHighlight(new Set(accounts));
+                    focusNodeOnCanvas(accounts[0]);
+                  } else {
+                    setTraceHighlight(new Set());
+                  }
+                }}
+              />
+            </div>
           ) : (
             /* Live Transaction Feed */
             <div className="flex-1 min-h-0">

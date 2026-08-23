@@ -18,6 +18,9 @@ const Recovery = lazy(() => import('./pages/Recovery').then(m => ({ default: m.R
 const Chat = lazy(() => import('./pages/Chat').then(m => ({ default: m.Chat })));
 const Reports = lazy(() => import('./pages/Reports').then(m => ({ default: m.Reports })));
 const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
+const Watchlist = lazy(() => import('./pages/Watchlist').then(m => ({ default: m.Watchlist })));
+const AuditLogs = lazy(() => import('./pages/AuditLogs').then(m => ({ default: m.AuditLogs })));
+const ExecutiveDashboard = lazy(() => import('./pages/ExecutiveDashboard').then(m => ({ default: m.ExecutiveDashboard })));
 const Unauthorized = lazy(() => import('./pages/Unauthorized').then(m => ({ default: m.Unauthorized })));
 
 // Lazy load customer banking components
@@ -92,22 +95,25 @@ const AppRoutes: React.FC = () => {
 
         <Route
           element={
-            <ProtectedRoute allowedRoles={['admin', 'investigator']} redirectTo="/login">
+            <ProtectedRoute allowedRoles={['admin', 'investigator', 'analyst', 'supervisor', 'executive']} redirectTo="/login">
               <AppLayout />
             </ProtectedRoute>
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/executive" element={<ExecutiveDashboard />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/transactions/:id" element={<Transactions />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/alerts/:id" element={<Alerts />} />
           <Route path="/investigation" element={<Investigation />} />
           <Route path="/investigation/:caseId" element={<Investigation />} />
+          <Route path="/watchlist" element={<Watchlist />} />
           <Route path="/flow" element={<Flow />} />
           <Route path="/flow/:graphId" element={<Flow />} />
           <Route path="/recovery" element={<Recovery />} />
           <Route path="/recovery/:assetId" element={<Recovery />} />
+          <Route path="/audit-logs" element={<AuditLogs />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/reports/:reportId" element={<Reports />} />

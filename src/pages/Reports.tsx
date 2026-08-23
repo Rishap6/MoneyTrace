@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 
+import { SARGeneratorModal } from '../components/reports/SARGeneratorModal';
+
 interface ReportHistoryItem {
   file_name: string;
   report_type: string;
@@ -11,8 +13,9 @@ interface ReportHistoryItem {
 }
 
 export const Reports: React.FC = () => {
-  const [selectedCaseId, setSelectedCaseId] = useState('REC202608168920');
+  const [selectedCaseId, setSelectedCaseId] = useState('CASE-2026-0801');
   const [selectedAlertId, setSelectedAlertId] = useState('ALT20260816051149913');
+  const [showSarModal, setShowSarModal] = useState(false);
   const [history, setHistory] = useState<ReportHistoryItem[]>([]);
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'generators' | 'history'>('generators');
@@ -268,7 +271,7 @@ export const Reports: React.FC = () => {
                 <button
                   onClick={() => handleDownload('/reports/dashboard/pdf', 'MoneyTrace_Executive_Dashboard.pdf', 'dash-pdf')}
                   disabled={isGenerating === 'dash-pdf'}
-                  className="py-2.5 px-4 bg-secondary text-white rounded-xl text-xs font-bold hover:bg-secondary/90 transition-all flex items-center justify-center gap-1.5 shadow"
+                  className="py-2.5 px-4 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-1.5 shadow"
                 >
                   <span className="material-symbols-outlined text-base">picture_as_pdf</span>
                   <span>{isGenerating === 'dash-pdf' ? 'Building...' : 'Executive PDF'}</span>
@@ -276,14 +279,52 @@ export const Reports: React.FC = () => {
                 <button
                   onClick={() => handleDownload('/reports/export/dashboard', 'MoneyTrace_Analytics_Master.xlsx', 'dash-xlsx')}
                   disabled={isGenerating === 'dash-xlsx'}
-                  className="py-2.5 px-4 bg-emerald-600 text-gray-900 rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 shadow"
+                  className="py-2.5 px-4 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 shadow"
                 >
                   <span className="material-symbols-outlined text-base">table_view</span>
                   <span>{isGenerating === 'dash-xlsx' ? 'Building...' : 'Master Excel (.xlsx)'}</span>
                 </button>
               </div>
             </div>
+
+            {/* 5. FIU-IND Suspicious Transaction Report (STR / SAR) Card */}
+            <div className="col-span-1 md:col-span-2 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 p-6 rounded-2xl text-white shadow-elevated border border-blue-500/40 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-amber-300">
+                    <span className="material-symbols-outlined text-2xl">gavel</span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base font-extrabold text-white">
+                        FIU-IND Suspicious Transaction Report (STR / SAR)
+                      </h2>
+                      <span className="px-2 py-0.2 rounded bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold">
+                        REGULATORY
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-300 mt-0.5">
+                      Statutory PMLA 2002 reporting with suspect entity schedules, transaction ledger trail, and Section 91 directives.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowSarModal(true)}
+                  className="px-5 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-gray-900 font-extrabold rounded-xl text-xs shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer flex-shrink-0"
+                >
+                  <span className="material-symbols-outlined text-[18px]">description</span>
+                  <span>Generate & Preview STR</span>
+                </button>
+              </div>
+            </div>
           </div>
+
+          <SARGeneratorModal
+            caseId={selectedCaseId}
+            isOpen={showSarModal}
+            onClose={() => setShowSarModal(false)}
+          />
 
           {/* Bulk Raw CSV Exports Strip */}
           <div className="bg-white border border-gray-200 shadow-card p-6 rounded-xl border border-outline-variant/30 space-y-4 shadow-lg">
