@@ -3,6 +3,7 @@
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import random
+from typing import Any, Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy import select, insert, func
@@ -98,8 +99,8 @@ class AuthService:
     # Login
     # ------------------------------------------------------------------
 
-    async def login(self, data: LoginRequest) -> TokenResponse:
-        """Authenticate a user and return JWT tokens."""
+    async def login(self, data: LoginRequest, request: Any = None) -> TokenResponse:
+        """Authenticate a user and return JWT tokens while capturing client IP and GeoIP city."""
         user = await self._get_user_by_email(data.email)
         if not user or not verify_password(data.password, user.password_hash):
             raise exceptions.UnauthorizedError("Invalid email or password")
@@ -107,7 +108,26 @@ class AuthService:
         if not user.is_active:
             raise exceptions.ForbiddenError("Account is inactive")
 
-        # Broadcast login status event over WebSocket
+        # Capture IP address, device, and GeoIP location
+        from app.services.geoip import GeoIPService
+
+        client_ip = "103.21.244.2"
+        user_agent = "Chrome on Windows 11"
+
+        if request is not None:
+            raw_ip = request.headers.get("x-forwarded-for") or (request.client.host if getattr(request, "client", None) else None)
+            if raw_ip:
+                client_ip = raw_ip.split(",")[0].strip()
+            user_agent = request.headers.get("user-agent", user_agent)
+
+        geo = GeoIPService.resolve_ip(client_ip)
+
+        user.last_login_ip = geo["ip"]
+        user.last_login_city = f"{geo['city']}, {geo['country']}"
+        user.last_login_device = user_agent[:150]
+        await self.session.commit()
+
+        # Broadcast login status event over WebSocket with IP & GeoIP coordinates
         try:
             from app.core.websocket import ws_manager
             await ws_manager.broadcast("USER_LOGIN", {
@@ -116,11 +136,16 @@ class AuthService:
                 "email": user.email,
                 "role": user.role,
                 "status": "online",
+                "ip_address": geo["ip"],
+                "city": geo["city"],
+                "country": geo["country"],
+                "lat": geo["lat"],
+                "lng": geo["lng"],
+                "device": user_agent,
             })
         except Exception:
             pass
 
-        # Remember me can grant a longer expiry in future
         access_token = create_access_token(user.id)
         refresh_token = create_refresh_token(user.id)
 

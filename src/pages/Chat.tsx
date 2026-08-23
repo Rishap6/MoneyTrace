@@ -46,27 +46,22 @@ export const Chat: React.FC = () => {
     {
       id: 'welcome',
       sender: 'assistant',
-      text: `### 🛡️ MoneyTrace AI Forensic Copilot is Ready.
-
-I can assist you with real-time financial crime triage, asset recovery evaluation, and regulatory compliance:
-- **Explain Flags**: \`Why was transaction TXN_TRACE_HOP1 flagged?\`
-- **Money Trails**: \`Show money trail for TXN_TRACE_HOP1\`
-- **Recovery Intelligence**: \`Can money be recovered for case REC202608168920?\`
-- **Mule Accounts**: \`Why is ACC1002 suspicious?\`
-- **Case Summaries**: \`Summarize Case REC202608168920\`
-- **Compliance Search**: \`What is the RBI guideline for unauthorized digital fraud?\``,
+      text: `### 🛡️ MoneyTrace AI Forensic Copilot Ready
+- 🔍 **Flag Explanations**: Risk scoring & rule attributions
+- 🕸️ **Money Trails**: Multi-hop layering & mule ring tracing
+- ⚡ **Asset Recovery**: Section 91 freeze probability
+- 📜 **RBI Compliance**: Regulatory & FIU guidelines`,
       suggestions: [
-        'Show me all mule accounts connected to ACC1001',
-        'Which account should be frozen first?',
-        'Summarize this case in 30 seconds',
-        'Explain why this transaction is high risk',
-        'Why was transaction TXN_TRACE_HOP1 flagged?',
-        'What is the RBI guideline for digital fraud?',
+        'Show mule accounts for ACC1001',
+        'Which account to freeze first?',
+        'Summarize Case REC202608168920',
+        'Explain high risk flags',
+        'RBI digital fraud guidelines',
       ],
       recommendations: [
-        '1. Inspect open CRITICAL alerts in the SOC Queue',
-        '2. Execute asset freeze on high recovery probability cases',
-        '3. Cross-reference mule nodes against I4C guidelines',
+        'Inspect open CRITICAL alerts in the SOC Queue',
+        'Execute asset freeze on high recovery probability cases',
+        'Cross-reference mule nodes against I4C guidelines',
       ],
       created_at: new Date().toISOString(),
     },
@@ -245,9 +240,9 @@ I can assist you with real-time financial crime triage, asset recovery evaluatio
                     </div>
 
                     <div
-                      className={`max-w-[90%] rounded-xl p-4 text-sm leading-relaxed shadow-sm ${
+                      className={`max-w-[85%] rounded-xl p-4 text-sm leading-relaxed shadow-sm ${
                         msg.sender === 'user'
-                          ? 'bg-primary text-on-primary rounded-tr-none'
+                          ? 'bg-primary text-on-primary rounded-tr-none font-medium'
                           : 'bg-surface-variant/70 text-gray-900 border border-outline-variant/40 rounded-tl-none'
                       }`}
                     >
@@ -389,21 +384,6 @@ I can assist you with real-time financial crime triage, asset recovery evaluatio
                         </div>
                       )}
                     </div>
-
-                    {/* Contextual Suggestion Pills */}
-                    {msg.suggestions && msg.suggestions.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2 max-w-[90%]">
-                        {msg.suggestions.map((sug, sIdx) => (
-                          <button
-                            key={sIdx}
-                            onClick={() => handleSendMessage(sug)}
-                            className="text-xs px-2.5 py-1 rounded-full bg-surface-variant/80 hover:bg-primary/20 hover:text-primary hover:border-primary/40 border border-outline-variant/30 text-gray-500 transition-all cursor-pointer text-left"
-                          >
-                            💡 {sug}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 ))}
 
@@ -416,8 +396,30 @@ I can assist you with real-time financial crime triage, asset recovery evaluatio
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Chat Input Bar */}
-              <div className="p-3 bg-surface/80 border-t border-outline-variant/30 backdrop-blur-md">
+              {/* Suggested Query Chips (Single-line horizontal scroll) */}
+              <div className="flex-none px-3.5 py-2 border-t border-gray-100 bg-surface-variant/20">
+                <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar scrollbar-none">
+                  {[
+                    'Show mule accounts for ACC1001',
+                    'Which account to freeze first?',
+                    'Summarize Case REC202608168920',
+                    'Explain high risk flags',
+                    'RBI digital fraud guidelines',
+                  ].map((sug, sIdx) => (
+                    <button
+                      key={sIdx}
+                      onClick={() => handleSendMessage(sug)}
+                      className="text-[11px] font-medium text-gray-700 bg-white hover:bg-primary hover:text-white border border-gray-200 px-2.5 py-1 rounded-full whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 shrink-0 shadow-xs"
+                    >
+                      <span className="material-symbols-outlined text-[12px] text-primary">sparkles</span>
+                      {sug}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chat Input Bar (Fixed Bottom) */}
+              <div className="flex-none p-3 bg-surface/90 border-t border-outline-variant/30 backdrop-blur-md">
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -435,7 +437,7 @@ I can assist you with real-time financial crime triage, asset recovery evaluatio
                   <button
                     type="submit"
                     disabled={isLoading || !inputMessage.trim()}
-                    className="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-semibold text-sm flex items-center gap-1.5 hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-primary/20"
+                    className="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-semibold text-sm flex items-center gap-1.5 hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-primary/20 cursor-pointer"
                   >
                     <span>Send</span>
                     <span className="material-symbols-outlined text-base">send</span>

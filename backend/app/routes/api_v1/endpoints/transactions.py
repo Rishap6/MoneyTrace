@@ -86,22 +86,37 @@ async def verify_transaction_pin(
 # Send Money
 # ---------------------------------------------------------------------------
 
+from fastapi import APIRouter, Depends, Query, status, Body, HTTPException, Request
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from app.services.geoip import GeoIPService
+from app.models.transaction import Transaction
+
 @router.post("/send", response_model=TransactionResponse, status_code=status.HTTP_201_CREATED)
 async def send_money(
     data: SendTransactionRequest,
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_session),
 ) -> TransactionResponse:
-    """Send money to another account."""
+    """Send money to another account, automatically capturing client IP and GeoIP coordinates."""
+    client_ip = data.ip_address or request.headers.get("x-forwarded-for") or (request.client.host if getattr(request, "client", None) else "103.21.244.2")
+    if "," in str(client_ip):
+        client_ip = str(client_ip).split(",")[0].strip()
+
+    geo_info = GeoIPService.resolve_ip(str(client_ip))
+    location_str = data.location or geo_info["location_string"]
+    device_str = data.device_info or request.headers.get("user-agent", "Chrome on Windows 11")
+
     service = TransactionService(session)
     transaction = await service.send_money(
         sender_user_id=current_user.id,
         receiver_account_number=data.receiver_account_number,
         amount=data.amount,
         remark=data.remark,
-        device_info=data.device_info,
-        ip_address=data.ip_address,
-        location=data.location,
+        device_info=device_str,
+        ip_address=geo_info["ip"],
+        location=location_str,
     )
 
     # Log Audit
@@ -116,6 +131,8 @@ async def send_money(
         details={
             "amount": float(transaction.amount),
             "receiver": data.receiver_account_number,
+            "ip_address": geo_info["ip"],
+            "city": geo_info["city"],
         },
         timestamp=datetime.now(timezone.utc),
     )
@@ -123,6 +140,73 @@ async def send_money(
     await session.commit()
 
     return TransactionResponse.model_validate(transaction)
+
+
+# ---------------------------------------------------------------------------
+# IP Geolocation Threat Map API
+# ---------------------------------------------------------------------------
+
+@router.get("/ip-map")
+async def get_transaction_ip_map(
+    limit: int = Query(100, ge=1, le=500),
+    current_user: User = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Get transactions with resolved GeoIP coordinates, IP address, risk score,
+    and account metadata for interactive geospatial threat map plotting and smooth zoom focus.
+    """
+    stmt = (
+        select(Transaction)
+        .order_by(Transaction.timestamp.desc())
+        .limit(limit)
+        .options(
+            selectinload(Transaction.sender_account),
+            selectinload(Transaction.receiver_account),
+        )
+    )
+    res = await session.execute(stmt)
+    txns = res.scalars().all()
+
+    nodes = []
+    for t in txns:
+        ip = t.ip_address or "103.21.244.2"
+        geo = GeoIPService.resolve_ip(ip)
+
+        sender_acc = t.sender_account.account_number if t.sender_account else "ACC1001"
+        receiver_acc = t.receiver_account.account_number if t.receiver_account else "ACC1002"
+
+        # Receiver IP coordinates (destination node)
+        receiver_geo = GeoIPService.resolve_ip(receiver_acc)
+
+        nodes.append({
+            "id": str(t.id),
+            "transaction_id": t.transaction_id,
+            "ip_address": geo["ip"],
+            "city": geo["city"],
+            "state": geo["state"],
+            "country": geo["country"],
+            "lat": geo["lat"],
+            "lng": geo["lng"],
+            "isp": geo["isp"],
+            "location_string": geo["location_string"],
+            "amount": float(t.amount),
+            "risk_score": float(t.risk_score or 0.0),
+            "is_flagged": bool(t.is_flagged),
+            "status": t.status,
+            "remark": t.remark or "Transfer",
+            "sender_account": sender_acc,
+            "receiver_account": receiver_acc,
+            "receiver_city": receiver_geo["city"],
+            "receiver_lat": receiver_geo["lat"],
+            "receiver_lng": receiver_geo["lng"],
+            "timestamp": t.timestamp.isoformat() if t.timestamp else None,
+        })
+
+    return {
+        "total": len(nodes),
+        "transactions": nodes,
+    }
 
 
 # ---------------------------------------------------------------------------

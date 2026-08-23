@@ -1,20 +1,23 @@
 """Application configuration management using Pydantic Settings."""
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = (BASE_DIR / "moneytrace.db").as_posix()
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=str(Path(__file__).parent.parent / ".env"),
+        env_file=str(BASE_DIR / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
     # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./moneytrace.db"
+    DATABASE_URL: str = f"sqlite+aiosqlite:///{DB_PATH}"
 
     # Security / Auth
     SECRET_KEY: str = "super-secret-key-change-in-production"
@@ -32,3 +35,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+

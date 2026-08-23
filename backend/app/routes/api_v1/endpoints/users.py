@@ -126,11 +126,12 @@ async def get_frequent_recipients(
 @router.get("/active")
 async def get_active_users():
     """Return all currently active / online users connected to MoneyTrace."""
+    from datetime import datetime, timezone
     users = ws_events_manager.get_active_users()
     return {
         "active_users": users,
         "total_online": len(users),
-        "timestamp": func.now(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

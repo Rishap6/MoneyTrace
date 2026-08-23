@@ -2,6 +2,7 @@ import React from 'react';
 import { useDashboardStats } from '../hooks/useDashboard';
 import { formatCurrency } from '../utils/formatters';
 import { FraudHeatmapSlider } from '../components/dashboard/FraudHeatmapSlider';
+import { IPGeospatialMap } from '../components/transactions/IPGeospatialMap';
 
 export const ExecutiveDashboard: React.FC = () => {
   const { data: stats } = useDashboardStats();
@@ -178,103 +179,9 @@ export const ExecutiveDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: India Geospatial Fraud Movement Map (7 Cols) */}
-        <div className="lg:col-span-7 bg-slate-900 rounded-2xl p-6 text-white border border-slate-800 shadow-elevated flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
-                GEOSPATIAL THREAT VELOCITY
-              </span>
-              <h3 className="text-[15px] font-bold text-white mt-0.5">
-                India Money Laundering Movement Corridor
-              </h3>
-            </div>
-            <span className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 font-mono text-[11px] border border-red-500/30 animate-pulse">
-              LIVE CORRIDOR
-            </span>
-          </div>
-
-          {/* Map Vector Visualization */}
-          <div className="relative h-64 bg-slate-950 rounded-xl border border-slate-800/80 p-4 flex flex-col justify-between overflow-hidden">
-            {/* Animated Trajectory SVG */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 500 240">
-              {/* Path 1: Mumbai to Delhi */}
-              <path
-                d="M 120 160 Q 180 80 240 60"
-                fill="none"
-                stroke="#3B82F6"
-                strokeWidth="2.5"
-                strokeDasharray="6 4"
-                className="animate-pulse"
-              />
-              {/* Path 2: Delhi to Pune */}
-              <path
-                d="M 240 60 Q 200 130 140 180"
-                fill="none"
-                stroke="#EF4444"
-                strokeWidth="2.5"
-                strokeDasharray="6 4"
-              />
-              {/* Path 3: Pune to Bangalore */}
-              <path
-                d="M 140 180 Q 200 200 280 210"
-                fill="none"
-                stroke="#8B5CF6"
-                strokeWidth="2.5"
-                strokeDasharray="6 4"
-              />
-            </svg>
-
-            {/* City Nodes */}
-            <div className="absolute left-[110px] top-[150px] flex items-center gap-1.5 z-10">
-              <span className="w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-500/30 animate-ping" />
-              <span className="text-[11px] font-bold font-mono bg-slate-900/90 px-1.5 py-0.5 rounded border border-blue-500/40 text-blue-300">
-                Mumbai (Victim)
-              </span>
-            </div>
-
-            <div className="absolute left-[230px] top-[50px] flex items-center gap-1.5 z-10">
-              <span className="w-3 h-3 rounded-full bg-amber-500 ring-4 ring-amber-500/30" />
-              <span className="text-[11px] font-bold font-mono bg-slate-900/90 px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-300">
-                Delhi (Mule 1)
-              </span>
-            </div>
-
-            <div className="absolute left-[130px] top-[180px] flex items-center gap-1.5 z-10">
-              <span className="w-3 h-3 rounded-full bg-red-500 ring-4 ring-red-500/30" />
-              <span className="text-[11px] font-bold font-mono bg-slate-900/90 px-1.5 py-0.5 rounded border border-red-500/40 text-red-300">
-                Pune (Mule 2)
-              </span>
-            </div>
-
-            <div className="absolute left-[270px] top-[200px] flex items-center gap-1.5 z-10">
-              <span className="w-3 h-3 rounded-full bg-purple-500 ring-4 ring-purple-500/30" />
-              <span className="text-[11px] font-bold font-mono bg-slate-900/90 px-1.5 py-0.5 rounded border border-purple-500/40 text-purple-300">
-                Bangalore (Holder Hub)
-              </span>
-            </div>
-          </div>
-
-          {/* Corridor Narration */}
-          <div className="grid grid-cols-3 gap-2 text-[11px]">
-            <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-              <span className="text-slate-400 block text-[10px] uppercase">Primary Vector</span>
-              <span className="font-bold text-white">Mumbai → Delhi</span>
-              <span className="text-red-400 block text-[10px] font-mono mt-0.5">₹1,50,000 Compromised</span>
-            </div>
-
-            <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-              <span className="text-slate-400 block text-[10px] uppercase">Layering Hop</span>
-              <span className="font-bold text-white">Delhi → Pune</span>
-              <span className="text-amber-400 block text-[10px] font-mono mt-0.5">₹1,45,000 Transferred</span>
-            </div>
-
-            <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-              <span className="text-slate-400 block text-[10px] uppercase">Terminal Hub</span>
-              <span className="font-bold text-white">Pune → Bangalore</span>
-              <span className="text-emerald-400 block text-[10px] font-mono mt-0.5">Section 91 Freeze Sent</span>
-            </div>
-          </div>
+        {/* Right: India Geospatial Fraud Movement Map & IP Threat Corridor */}
+        <div className="lg:col-span-7">
+          <IPGeospatialMap />
         </div>
       </div>
 

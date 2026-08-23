@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { chatService } from '../../services';
 
 export interface AICopilotDrawerProps {
@@ -16,10 +16,11 @@ export interface CopilotMessage {
 }
 
 const DEFAULT_SUGGESTIONS = [
-  'Why was this account flagged as a mule?',
-  'Explain the circular laundering loop detected.',
-  'What is the optimal fund recovery strategy?',
-  'List high velocity structuring transactions.',
+  'Why was this account flagged?',
+  'Show circular laundering loop',
+  'Optimal fund recovery strategy',
+  'List structuring transactions',
+  'RBI digital fraud compliance',
 ];
 
 export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
@@ -32,13 +33,33 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
     {
       id: 'init-1',
       role: 'assistant',
-      content:
-        '👋 Hello Investigator! I am your AI Financial Crime Copilot. I analyze live money flow graphs, mule rings, layering chains, and asset recovery probabilities. Ask me anything about the network.',
+      content: `### 🛡️ AI Forensic Copilot Ready
+- 🔍 **Flag Reasons**: Risk scoring & rule breakdown
+- 🕸️ **Money Trails**: Multi-hop layering & mule ring tracing
+- ⚡ **Asset Recovery**: Section 91 freeze probability
+- 📜 **RBI Compliance**: Regulatory & FIU guidelines`,
       timestamp: new Date().toISOString(),
     },
   ]);
   const [input, setInput] = useState(initialQuestion || '');
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [messages, loading, isOpen]);
+
+  useEffect(() => {
+    if (initialQuestion) {
+      setInput(initialQuestion);
+    }
+  }, [initialQuestion]);
 
   const handleSend = async (questionToSend?: string) => {
     const q = (questionToSend || input).trim();
@@ -51,12 +72,11 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
       timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
     try {
-      // Call real backend assistant API
       const res = await chatService.sendMessage({
         message: q,
         context: {
@@ -75,7 +95,7 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
         resAny?.response ||
         'No detailed AI response returned from the server.';
 
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
           id: `ai-${Date.now()}`,
@@ -85,7 +105,7 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
         },
       ]);
     } catch (err: any) {
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
           id: `ai-${Date.now()}`,
@@ -94,7 +114,7 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
             err?.response?.data?.detail ||
             err?.response?.data?.message ||
             err?.message ||
-            'Unable to reach AI assistant engine. Please verify network connectivity.'
+            'Unable to reach AI engine.'
           }`,
           timestamp: new Date().toISOString(),
         },
@@ -107,92 +127,106 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-96 max-w-full bg-[#090D16]/95  border-l border-blue-200 flex flex-col shadow-card animate-in slide-in-from-right duration-300">
-      {/* ───── Header ───── */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-purple-950/20">
+    <div className="fixed inset-y-0 right-0 z-50 w-[420px] sm:w-[460px] max-w-full bg-[#090D16] border-l border-slate-800/90 flex flex-col h-full overflow-hidden shadow-2xl animate-in slide-in-from-right duration-300 font-sans">
+      {/* 1. Header (Fixed Height / flex-none) */}
+      <div className="flex-none px-4 py-3.5 border-b border-slate-800/80 flex items-center justify-between bg-[#0F172A]/90 backdrop-blur">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-gray-900 shadow-sm">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
             <span className="material-symbols-outlined text-lg">psychology</span>
           </div>
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-100 flex items-center gap-1.5">
               AI Investigator Copilot
-              <span className="text-[9px] bg-purple-500/20 text-blue-600 px-1.5 py-0.2 rounded font-mono">v2.0</span>
+              <span className="text-[9px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-mono border border-blue-500/30">
+                PRO v2.4
+              </span>
             </h3>
-            <p className="text-[10px] text-gray-500">Contextual Graph Intelligence</p>
+            <p className="text-[10px] text-slate-400 font-mono">
+              {selectedAccountId ? `Account Context: ${selectedAccountId}` : 'Contextual Graph Intelligence'}
+            </p>
           </div>
         </div>
 
         <button
           onClick={onClose}
-          className="text-gray-500 hover:text-gray-900 p-1 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+          className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <span className="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
 
-      {/* ───── Conversation Body ───── */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map(m => (
+      {/* 2. Messages History (flex-1 min-h-0 overflow-y-auto) */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3.5">
+        {messages.map((m) => (
           <div
             key={m.id}
             className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
           >
+            <div className="flex items-center gap-1.5 mb-1 px-1 text-[10px] font-mono text-slate-400">
+              <span>{m.role === 'user' ? 'Investigator' : 'AI Copilot'}</span>
+              <span>•</span>
+              <span>
+                {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+
+            {/* Requirement 4: Bubble Width max-w-[85%] */}
             <div
-              className={`max-w-[85%] rounded-xl p-3 text-xs leading-relaxed ${
+              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-sm ${
                 m.role === 'user'
-                  ? 'bg-blue-600 text-gray-900 rounded-br-none shadow-lg shadow-purple-900/30'
-                  : 'bg-[#131B2E] border border-gray-200 text-gray-700 rounded-bl-none shadow-sm'
+                  ? 'bg-blue-600 text-white rounded-br-xs font-medium'
+                  : 'bg-[#131B2E] border border-slate-800/90 text-slate-200 rounded-bl-xs'
               }`}
             >
-              <div className="whitespace-pre-wrap">{m.content}</div>
+              <div className="whitespace-pre-line font-sans space-y-1.5">
+                {m.content}
+              </div>
             </div>
-            <span className="text-[8px] text-gray-400 mt-1 font-mono">
-              {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
           </div>
         ))}
 
         {loading && (
-          <div className="flex items-center gap-2 text-xs text-blue-600 p-2">
+          <div className="flex items-center gap-2 text-xs text-blue-400 p-2 font-mono bg-blue-950/30 rounded-xl border border-blue-800/40">
             <span className="material-symbols-outlined text-base animate-spin">sync</span>
             <span>Synthesizing topological graph evidence...</span>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* ───── Suggested Chips ───── */}
-      <div className="p-3 border-t border-gray-200 bg-slate-950/40">
-        <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 block mb-1.5">
-          Suggested Queries
-        </span>
-        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+      {/* 3. Suggested Queries (Requirement 3 & 6: Fixed bottom, single-line horizontal scroll) */}
+      <div className="flex-none px-3.5 py-2 border-t border-slate-800/80 bg-[#0A0E17]">
+        <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar scrollbar-none">
           {DEFAULT_SUGGESTIONS.map((s, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(s)}
-              className="text-[9px] text-blue-600 bg-blue-50 hover:bg-purple-900/60 border border-blue-200 px-2 py-1 rounded-lg text-left transition-colors cursor-pointer"
+              className="text-[11px] font-medium text-slate-300 bg-slate-900/90 hover:bg-blue-600 hover:text-white border border-slate-700/80 px-2.5 py-1 rounded-full whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 shrink-0 shadow-sm"
             >
+              <span className="material-symbols-outlined text-[12px] text-blue-400">sparkles</span>
               {s}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ───── Input Footer ───── */}
-      <div className="p-3 border-t border-gray-200 bg-[#0F172A] flex items-center gap-2">
-        <input
-          type="text"
-          placeholder="Ask Copilot about any account, hop, or pattern..."
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
-          className="flex-1 bg-[#1E293B] border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 placeholder-slate-500 focus:outline-none focus:border-purple-500 font-sans"
-        />
+      {/* 4. Fixed Input Footer (Requirement 3 & 9: Microsoft Copilot / ChatGPT sidebar UX) */}
+      <div className="flex-none p-3 border-t border-slate-800/90 bg-[#0F172A] flex items-center gap-2">
+        <div className="flex-1 relative flex items-center">
+          <input
+            type="text"
+            placeholder="Ask Copilot about accounts, hops, or rules..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            className="w-full bg-[#1E293B] border border-slate-700/80 rounded-xl pl-3 pr-8 py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-sans"
+          />
+        </div>
+
         <button
           onClick={() => handleSend()}
           disabled={!input.trim() || loading}
-          className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-purple-500 disabled:opacity-40 text-gray-900 flex items-center justify-center shadow-lg transition-all cursor-pointer"
+          className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white flex items-center justify-center shadow-lg transition-all cursor-pointer shrink-0"
         >
           <span className="material-symbols-outlined text-base">send</span>
         </button>

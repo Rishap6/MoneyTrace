@@ -19,24 +19,28 @@ from app.services.auth import AuthService
 router = APIRouter()
 
 
+from fastapi import APIRouter, Depends, Request, status
+
 @router.post("/register", response_model=AuthDataResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     data: RegisterRequest,
+    request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> AuthDataResponse:
     """Register a new user, create their bank account, and return tokens."""
     service = AuthService(session)
-    return await service.register(data)
+    return await service.register(data, request=request)
 
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
     data: LoginRequest,
+    request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> TokenResponse:
     """Authenticate user and return access/refresh tokens."""
     service = AuthService(session)
-    tokens = await service.login(data)
+    tokens = await service.login(data, request=request)
     return tokens
 
 
