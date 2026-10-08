@@ -1,6 +1,7 @@
 """Authentication request/response schemas (Pydantic v2)."""
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
@@ -60,14 +61,6 @@ class RefreshRequest(BaseModel):
 # Response Schemas
 # ---------------------------------------------------------------------------
 
-class TokenResponse(BaseModel):
-    """Returned after login or token refresh."""
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int  # seconds until access token expires
-
-
 class UserResponse(BaseModel):
     """Public user representation."""
     model_config = ConfigDict(from_attributes=True)
@@ -80,6 +73,16 @@ class UserResponse(BaseModel):
     is_superuser: bool
     created_at: datetime
     updated_at: datetime | None = None
+
+
+class TokenResponse(BaseModel):
+    """Returned after login or token refresh."""
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int  # seconds until access token expires
+    user: UserResponse | None = None
+    tokens: dict[str, Any] | None = None
 
 
 class AuthDataResponse(BaseModel):

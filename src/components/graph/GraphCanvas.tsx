@@ -122,6 +122,17 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
     return map;
   }, [nodes, nodePositions]);
 
+  // Prevent default page scroll on wheel
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const preventScroll = (e: WheelEvent) => {
+      e.preventDefault();
+    };
+    el.addEventListener('wheel', preventScroll, { passive: false });
+    return () => el.removeEventListener('wheel', preventScroll);
+  }, []);
+
   // Connected nodes & edges for hover highlight
   const { connectedNodeIds, connectedEdgeKeys } = useMemo(() => {
     const cNodes = new Set<string>();

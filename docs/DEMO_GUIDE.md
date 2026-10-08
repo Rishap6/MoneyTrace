@@ -11,7 +11,7 @@ Please refer to the comprehensive guide in [`docs/LIVE_DEMO_WALKTHROUGH.md`](./L
 ```powershell
 # 1. Backend Server
 cd backend
-python -m uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # 2. Frontend App
 npm.cmd run dev

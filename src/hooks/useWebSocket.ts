@@ -85,7 +85,7 @@ class WebSocketService {
 
     this.isConnecting = true;
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
+    const host = window.location.host;
     
     const params = new URLSearchParams();
     if (userMetadata?.user_id) params.set('user_id', userMetadata.user_id);

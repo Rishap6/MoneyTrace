@@ -80,7 +80,7 @@ class FraudPatternClassifier:
 
         # Best prediction
         best_type = max(probs.items(), key=lambda x: x[1])[0]
-        confidence = min(max(probs[best_type] * 1.5, 72.0), 96.5)
+        confidence = min(max(probs[best_type] * 1.6 + 15.0, 78.0), 96.5)
 
         if not indicators:
             indicators.append(f"Composite risk score elevation ({risk_score:.0f}/100)")

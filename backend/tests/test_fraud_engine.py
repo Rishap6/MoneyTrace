@@ -40,8 +40,20 @@ async def async_session():
 async def test_rule_1_large_transaction(async_session: AsyncSession):
     """Test Rule 1: Large Transaction (> ₹50,000) adds +30 risk score."""
     user = User(id=uuid4(), full_name="User 1", email="u1@test.dev", password_hash="pass")
-    acc1 = Account(id=uuid4(), account_number="ACC10001", user_id=user.id, balance=Decimal("200000.00"))
-    acc2 = Account(id=uuid4(), account_number="ACC10002", user_id=user.id, balance=Decimal("100000.00"))
+    acc1 = Account(
+        id=uuid4(),
+        account_number="ACC10001",
+        user_id=user.id,
+        balance=Decimal("200000.00"),
+        created_at=datetime.now(timezone.utc) - timedelta(days=60),
+    )
+    acc2 = Account(
+        id=uuid4(),
+        account_number="ACC10002",
+        user_id=user.id,
+        balance=Decimal("100000.00"),
+        created_at=datetime.now(timezone.utc) - timedelta(days=60),
+    )
     async_session.add_all([user, acc1, acc2])
     await async_session.flush()
 
@@ -71,8 +83,20 @@ async def test_rule_1_large_transaction(async_session: AsyncSession):
 async def test_rule_2_very_large_transaction(async_session: AsyncSession):
     """Test Rule 2: Very Large Transaction (> ₹100,000) adds +50 risk score."""
     user = User(id=uuid4(), full_name="User 2", email="u2@test.dev", password_hash="pass")
-    acc1 = Account(id=uuid4(), account_number="ACC20001", user_id=user.id, balance=Decimal("500000.00"))
-    acc2 = Account(id=uuid4(), account_number="ACC20002", user_id=user.id, balance=Decimal("100000.00"))
+    acc1 = Account(
+        id=uuid4(),
+        account_number="ACC20001",
+        user_id=user.id,
+        balance=Decimal("500000.00"),
+        created_at=datetime.now(timezone.utc) - timedelta(days=60),
+    )
+    acc2 = Account(
+        id=uuid4(),
+        account_number="ACC20002",
+        user_id=user.id,
+        balance=Decimal("100000.00"),
+        created_at=datetime.now(timezone.utc) - timedelta(days=60),
+    )
     async_session.add_all([user, acc1, acc2])
     await async_session.flush()
 
@@ -182,8 +206,20 @@ async def test_rule_4_new_account_activity(async_session: AsyncSession):
 async def test_rule_5_balance_drain(async_session: AsyncSession):
     """Test Rule 5: More than 80% balance transferred adds +40 risk score."""
     user = User(id=uuid4(), full_name="User 5", email="u5@test.dev", password_hash="pass")
-    acc1 = Account(id=uuid4(), account_number="ACC50001", user_id=user.id, balance=Decimal("10000.00"))
-    acc2 = Account(id=uuid4(), account_number="ACC50002", user_id=user.id, balance=Decimal("100000.00"))
+    acc1 = Account(
+        id=uuid4(),
+        account_number="ACC50001",
+        user_id=user.id,
+        balance=Decimal("10000.00"),
+        created_at=datetime.now(timezone.utc) - timedelta(days=60),
+    )
+    acc2 = Account(
+        id=uuid4(),
+        account_number="ACC50002",
+        user_id=user.id,
+        balance=Decimal("100000.00"),
+        created_at=datetime.now(timezone.utc) - timedelta(days=60),
+    )
     async_session.add_all([user, acc1, acc2])
     await async_session.flush()
 

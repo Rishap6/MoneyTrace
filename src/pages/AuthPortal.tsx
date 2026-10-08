@@ -104,8 +104,12 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         setErrorMessage('Please provide your full legal name.');
         return;
       }
-      if (formData.password.length < 6) {
-        setErrorMessage('Password must be at least 6 characters.');
+      if (formData.password.length < 8) {
+        setErrorMessage('Password must be at least 8 characters long.');
+        return;
+      }
+      if (!/[A-Z]/.test(formData.password) || !/[a-z]/.test(formData.password) || !/\d/.test(formData.password)) {
+        setErrorMessage('Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number.');
         return;
       }
       if (formData.password !== formData.confirmPassword) {
@@ -116,13 +120,15 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
     try {
       if (tab === 'signin') {
-        await loginMutation.mutateAsync({
+        const loginRes: any = await loginMutation.mutateAsync({
           email: emailTrimmed,
           password: formData.password,
           remember_me: formData.rememberMe,
         });
 
-        if (portal === 'customer') {
+        // Determine destination based on logged in user's role or portal
+        const role = (loginRes?.user?.role || loginRes?.role || '').toLowerCase();
+        if (role === 'customer' || portal === 'customer') {
           navigate('/customer/home', { replace: true });
         } else {
           const from = (location.state as any)?.from?.pathname || '/dashboard';
@@ -130,14 +136,15 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         }
       } else {
         const role = portal === 'customer' ? 'customer' : 'investigator';
-        await registerMutation.mutateAsync({
+        const regRes: any = await registerMutation.mutateAsync({
           full_name: formData.fullName.trim(),
           email: emailTrimmed.toLowerCase(),
           password: formData.password,
           role,
         });
 
-        if (portal === 'customer') {
+        const registeredRole = (regRes?.user?.role || regRes?.role || role).toLowerCase();
+        if (registeredRole === 'customer' || portal === 'customer') {
           navigate('/customer/home', { replace: true });
         } else {
           navigate('/dashboard', { replace: true });
@@ -212,24 +219,30 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         >
           <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
             <button
-              onClick={() => setPortal('admin')}
-              className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all ${
+              onClick={() => {
+                setPortal('admin');
+                setErrorMessage(null);
+              }}
+              className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all cursor-pointer ${
                 portal === 'admin'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Investigator
+              Investigator / SOC
             </button>
             <button
-              onClick={() => setPortal('customer')}
-              className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all ${
+              onClick={() => {
+                setPortal('customer');
+                setErrorMessage(null);
+              }}
+              className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all cursor-pointer ${
                 portal === 'customer'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Customer
+              Customer Banking
             </button>
           </div>
         </motion.div>
@@ -243,8 +256,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         >
           <div className="flex gap-4 border-b border-gray-200">
             <button
-              onClick={() => setTab('signin')}
-              className={`pb-2.5 text-[14px] font-semibold transition-colors border-b-2 -mb-px ${
+              onClick={() => {
+                setTab('signin');
+                setErrorMessage(null);
+              }}
+              className={`pb-2.5 text-[14px] font-semibold transition-colors border-b-2 -mb-px cursor-pointer ${
                 tab === 'signin'
                   ? 'text-blue-600 border-blue-600'
                   : 'text-gray-400 border-transparent hover:text-gray-600'
@@ -253,8 +269,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               Sign In
             </button>
             <button
-              onClick={() => setTab('register')}
-              className={`pb-2.5 text-[14px] font-semibold transition-colors border-b-2 -mb-px ${
+              onClick={() => {
+                setTab('register');
+                setErrorMessage(null);
+              }}
+              className={`pb-2.5 text-[14px] font-semibold transition-colors border-b-2 -mb-px cursor-pointer ${
                 tab === 'register'
                   ? 'text-blue-600 border-blue-600'
                   : 'text-gray-400 border-transparent hover:text-gray-600'
@@ -321,7 +340,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder={portal === 'customer' ? 'e.g. ACC1001 or email' : 'investigator@moneytrace.gov'}
+              placeholder={portal === 'customer' ? 'e.g. rahul@moneytrace.dev or ACC1001' : 'admin@moneytrace.dev or investigator@moneytrace.dev'}
               className="w-full bg-white border border-gray-200 rounded-lg py-2.5 px-4 text-gray-900 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all placeholder:text-gray-300"
               autoComplete="username"
             />
@@ -391,7 +410,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
             )}
           </AnimatePresence>
 
-          {/* Remember Me + Quick Fill */}
+          {/* Remember Me */}
           {tab === 'signin' && (
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -411,7 +430,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-lg text-[14px] transition-all shadow-sm flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-lg text-[14px] transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98]"
           >
             {isPending ? (
               <>
@@ -424,25 +443,60 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
           </button>
 
           {/* Quick Fill for Demo */}
-          {tab === 'signin' && portal === 'admin' && (
+          {tab === 'signin' && (
             <div className="pt-2">
-              <p className="text-[11px] text-gray-400 mb-2">Demo Quick Access:</p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('admin@moneytrace.com', 'admin123')}
-                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  Admin Login
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('analyst@moneytrace.com', 'analyst123')}
-                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  Analyst Login
-                </button>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] font-medium text-gray-400">
+                  {portal === 'admin' ? 'Demo Quick Access (SOC / Law Enforcement):' : 'Demo Quick Access (Customer Accounts):'}
+                </p>
               </div>
+              {portal === 'admin' ? (
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickFill('admin@moneytrace.dev', 'Admin@123456')}
+                    className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 active:scale-95"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                    Admin (Lead Investigator)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickFill('investigator@moneytrace.dev', 'Invest123')}
+                    className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-100 transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 active:scale-95"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                    Investigator User
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickFill('rahul@moneytrace.dev', 'Customer@123')}
+                    className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 active:scale-95"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                    Rahul (ACC1001)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickFill('sneha@moneytrace.dev', 'Customer@123')}
+                    className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-medium text-emerald-700 hover:bg-emerald-100 transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 active:scale-95"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Sneha (ACC1002)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickFill('aman@moneytrace.dev', 'Customer@123')}
+                    className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-medium text-amber-700 hover:bg-amber-100 transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 active:scale-95"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    Aman (ACC1003)
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </motion.form>

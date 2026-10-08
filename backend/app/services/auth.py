@@ -148,12 +148,20 @@ class AuthService:
 
         access_token = create_access_token(user.id)
         refresh_token = create_refresh_token(user.id)
+        expires_seconds = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            expires_in=expires_seconds,
+            user=UserResponse.model_validate(user),
+            tokens={
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer",
+                "expires_in": expires_seconds,
+            },
         )
 
     # ------------------------------------------------------------------
@@ -210,6 +218,22 @@ class AuthService:
         if "@" not in ident_clean:
             if ident_clean in ("admin", "administrator"):
                 ident_clean = "admin@moneytrace.dev"
+            elif ident_clean in ("investigator", "analyst"):
+                ident_clean = "investigator@moneytrace.dev"
+            elif ident_clean == "rahul":
+                ident_clean = "rahul@moneytrace.dev"
+            elif ident_clean == "sneha":
+                ident_clean = "sneha@moneytrace.dev"
+            elif ident_clean == "aman":
+                ident_clean = "aman@moneytrace.dev"
+
+        # Support .com domain aliases seamlessly
+        if ident_clean.endswith("@moneytrace.com"):
+            ident_clean = ident_clean.replace("@moneytrace.com", "@moneytrace.dev")
+
+        # Map analyst alias to investigator
+        if ident_clean in ("analyst@moneytrace.dev", "analyst"):
+            ident_clean = "investigator@moneytrace.dev"
 
         # 1. Exact email match or default domain match
         stmt = select(User).where(
@@ -221,7 +245,7 @@ class AuthService:
         if user:
             return user
 
-        # 2. Match by Account Number (e.g. ACC123456)
+        # 2. Match by Account Number (e.g. ACC1001, ACC123456)
         acc_stmt = select(User).join(Account, Account.user_id == User.id).where(
             func.lower(Account.account_number) == ident_clean
         )

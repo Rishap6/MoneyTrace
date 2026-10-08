@@ -39,6 +39,20 @@ class SimilarCaseMatch(BaseModel):
     status: str
 
 
+class ChartDataItem(BaseModel):
+    label: str
+    value: float
+    color: Optional[str] = None
+
+
+class ChatChartData(BaseModel):
+    chart_type: str = Field(description="bar, pie, gauge, risk_meter, timeline, stat_cards, horizontal_bar")
+    title: str
+    items: List[ChartDataItem] = Field(default_factory=list)
+    highlight_index: Optional[int] = None
+    unit: Optional[str] = None
+
+
 class ChatResponse(BaseModel):
     """AI Copilot natural language answer, XAI weights, RAG citations, and suggestions."""
     model_config = ConfigDict(from_attributes=True)
@@ -48,11 +62,13 @@ class ChatResponse(BaseModel):
     suggestions: List[str] = Field(default_factory=list)
     predicted_fraud_type: Optional[str] = None
     confidence_score: Optional[float] = None
+    freeze_account: Optional[str] = None
     rag_citations: List[RAGDocCitation] = Field(default_factory=list)
     xai_weights: List[XAIWeightItem] = Field(default_factory=list)
     similar_cases: List[SimilarCaseMatch] = Field(default_factory=list)
     recommendations: List[str] = Field(default_factory=list)
     context_data: Optional[Dict[str, Any]] = None
+    charts: List[ChatChartData] = Field(default_factory=list)
     created_at: datetime
 
 

@@ -151,36 +151,6 @@ const TexturedEarthSphere: React.FC = () => {
   );
 };
 
-/* ─────────────────────── Realistic Horizon Sunlight Flare ─────────────────────── */
-const HorizonSunlightFlare: React.FC = () => {
-  return (
-    <group position={[GLOBE_RADIUS * 0.72, GLOBE_RADIUS * 0.72, -0.2]}>
-      {/* Brilliant White Core */}
-      <mesh>
-        <sphereGeometry args={[0.07, 16, 16]} />
-        <meshBasicMaterial color="#FFFFFF" />
-      </mesh>
-
-      {/* Golden Corona Glow */}
-      <mesh>
-        <sphereGeometry args={[0.18, 16, 16]} />
-        <meshBasicMaterial color="#FEF08A" transparent opacity={0.65} />
-      </mesh>
-
-      {/* Soft Blue Atmospheric Flare Halo */}
-      <mesh>
-        <sphereGeometry args={[0.42, 24, 24]} />
-        <meshBasicMaterial color="#38BDF8" transparent opacity={0.25} />
-      </mesh>
-
-      {/* Extended Outer Sunlight Beam Spread */}
-      <mesh>
-        <sphereGeometry args={[0.75, 24, 24]} />
-        <meshBasicMaterial color="#0284C7" transparent opacity={0.1} />
-      </mesh>
-    </group>
-  );
-};
 
 /* ─────────────────────── Fallback Sphere ─────────────────────── */
 const FallbackEarthSphere: React.FC = () => (
@@ -478,14 +448,10 @@ export const IntelligenceGlobe: React.FC = () => {
         {/* Background Deep Space Starfield */}
         <Stars radius={45} depth={25} count={900} factor={3} saturation={0} fade speed={0.4} />
 
-        {/* Cinematic Sunlight from Top-Right Horizon */}
-        <ambientLight intensity={0.35} />
-        <directionalLight position={[9, 8, 4]} intensity={2.4} color="#FFFBEB" />
-        <directionalLight position={[-7, -3, -5]} intensity={0.3} color="#38BDF8" />
-        <pointLight position={[GLOBE_RADIUS * 0.8, GLOBE_RADIUS * 0.8, 0]} intensity={1.5} color="#FEF08A" distance={4} />
-
-        {/* Glowing Horizon Sunrise Flare on Top-Right Earth Limb */}
-        <HorizonSunlightFlare />
+        {/* Clean, balanced lighting for high-clarity photorealistic Earth */}
+        <ambientLight intensity={0.55} />
+        <directionalLight position={[8, 7, 5]} intensity={2.0} color="#FFFFFF" />
+        <directionalLight position={[-8, -4, -4]} intensity={0.5} color="#38BDF8" />
 
         {/* Interactive 360 Orbit Controls with Auto-Rotate & Inertia */}
         <OrbitControls
