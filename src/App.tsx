@@ -22,6 +22,7 @@ const Watchlist = lazy(() => import('./pages/Watchlist').then(m => ({ default: m
 const AuditLogs = lazy(() => import('./pages/AuditLogs').then(m => ({ default: m.AuditLogs })));
 const ExecutiveDashboard = lazy(() => import('./pages/ExecutiveDashboard').then(m => ({ default: m.ExecutiveDashboard })));
 const Unauthorized = lazy(() => import('./pages/Unauthorized').then(m => ({ default: m.Unauthorized })));
+const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
 
 // Lazy load customer banking components
 const CustomerLayout = lazy(() => import('./components/customer/CustomerLayout').then(m => ({ default: m.CustomerLayout })));
@@ -61,7 +62,7 @@ const RegisterPage: React.FC = () => <AuthPortal initialPortal="admin" initialTa
 const RootRedirect: React.FC = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
   if (isLoading) return <LoadingFallback />;
-  if (!isAuthenticated) return <Navigate to="/customer/login" replace />;
+  if (!isAuthenticated) return <LandingPage />;
   if (user?.role === 'customer') return <Navigate to="/customer/home" replace />;
   return <Navigate to="/dashboard" replace />;
 };
