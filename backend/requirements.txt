@@ -18,7 +18,20 @@ pydantic==2.10.4
 
 # Auth & Security
 passlib==1.7.4
+bcrypt==4.0.1
 python-jose[cryptography]==3.5.0
+
+# Financial flow analysis
+networkx==3.7
 
 # Date/Time utilities
 python-multipart==0.0.9
+
+# Reports & exports (also used by backend/app/services/report_generator.py)
+reportlab==5.0.1
+python-docx==1.2.0
+openpyxl==3.1.5
+matplotlib==3.11.2
+
+# API scripts
+httpx==0.28.1
